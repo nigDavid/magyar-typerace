@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>magyar typeRace</title>
+    <style>
+        :root {
+            --bg: #181825;
+            --container-bg: #1e1e2e;
+            --text: #cdd6f4;
+            --accent: #89b4fa;
+            --correct: #a6e3a1;
+            --wrong: #f38ba8;
+            --subtext: #7f849c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 90%;
+            text-align: center;
+        }
+
+        h1 { 
+            color: var(--accent); 
+            margin-bottom: 10px; 
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+        }
+
+        p.subtitle {
+            color: var(--subtext);
+            margin-bottom: 30px;
+        }
+
+        #text-container {
+            background: var(--container-bg);
+            padding: 30px;
+            border-radius: 15px;
+            font-size: 1.6rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-align: left;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            word-wrap: break-word;
+            min-height: 120px;
+            user-select: none;
+        }
+
+        .char { border-bottom: 2px solid transparent; color: var(--subtext); }
+        .char-correct { color: var(--correct); }
+        .char-wrong { color: var(--wrong); background: rgba(243, 139, 168, 0.2); border-radius: 3px; }
+        .char-current { border-bottom-color: var(--accent); color: var(--text); }
+
+        #input-field {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: var(--container-bg);
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 1px solid #313244;
+            min-width: 100px;
+        }
+
+        .stat-label { font-size: 0.8rem; color: var(--subtext); text-transform: uppercase; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
+
+        .controls { margin-top: 30px; }
+
+        button {
+            padding: 12px 30px;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: var(--bg);
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover { transform: scale(1.05); filter: brightness(1.1); }
+        
+        .focus-notice {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: var(--subtext);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" onclick="focusInput()">
+        <h1>Magyar TypeRacer</h1>
+        <p class="subtitle">Gépelj le 20 véletlenszerű magyar szót!</p>
+        
+        <div id="text-container"></div>
+        
+        <input type="text" id="input-field" autocomplete="off">
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">WPM</div>
+                <div id="wpm" class="stat-value">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Pontosság</div>
+                <div id="accuracy" class="stat-value">100</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Idő</div>
+                <div id="timer" class="stat-value">0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="resetGame()">Új játék (Esc)</button>
+        </div>
+        <p class="focus-notice">Kattints bárhová a kezdéshez!</p>
+    </div>
+
+    <script>
+        const szotar = [
+            "alma", "erdő", "asztal", "tanulás", "magyar", "ország", "számítógép", "internet", 
+            "munka", "iskola", "folyó", "város", "autó", "macska", "kutya", "szeretet", 
+            "felhő", "ablak", "ajtó", "könyv", "újság", "telefon", "tavasz", "nyár", 
+            "ősz", "tél", "reggel", "este", "holnap", "tegnap", "beszéd", "játék", 
+            "pénz", "piac", "vidám", "gyors", "lassú", "ember", "gyerek", "család",
+            "világ", "élet", "híd", "kapu", "virág", "madár", "repülő", "vonat",
+            "kávé", "ebéd", "vacsora", "szék", "lámpa", "kép", "fal", "tető",
+            "utca", "tér", "szín", "kék", "zöld", "piros", "sárga", "fehér",
+            "fekete", "szürke", "barna", "erős", "gyenge", "meleg", "hideg", "eső"
+        ];
+
+        let currentText = "";
+        let startTime = null;
+        let timerInterval = null;
+        let mistakes = 0;
+        let isFinished = false;
+
+        const textContainer = document.getElementById('text-container');
+        const inputField = document.getElementById('input-field');
+
+        function generateRandomText() {
+            let kivalasztottSzavak = [];
+            for (let i = 0; i < 20; i++) {
+                const veletlenIndex = Math.floor(Math.random() * szotar.length);
+                kivalasztottSzavak.push(szotar[veletlenIndex]);
+            }
+            return kivalasztottSzavak.join(' ');
+        }
+
+        function initGame() {
+            isFinished = false;
+            currentText = generateRandomText();
+            textContainer.innerHTML = currentText.split('').map(char => `<span class="char">${char}</span>`).join('');
+            inputField.value = "";
+            inputField.disabled = false;
+            mistakes = 0;
+            startTime = null;
+            clearInterval(timerInterval);
+            
+            document.getElementById('wpm').innerText = "0";
+            document.getElementById('accuracy').innerText = "100";
+            document.getElementById('timer').innerText = "0";
+            
+            updateCursor(0);
+            focusInput();
+        }
+
+        function focusInput() {
+            if (!isFinished) inputField.focus();
+        }
+
+        function updateCursor(index) {
+            const characters = textContainer.querySelectorAll('.char');
+            characters.forEach(c => c.classList.remove('char-current'));
+            if (index < characters.length) {
+                characters[index].classList.add('char-current');
+            }
+        }
+
+        inputField.addEventListener('input', () => {
+            if (isFinished) return;
+            
+            if (!startTime && inputField.value.length > 0) {
+                startTime = new Date();
+                startTimer();
+            }
+
+            const characters = textContainer.querySelectorAll('.char');
+            const inputValue = inputField.value.split('');
+            
+            mistakes = 0;
+
+            characters.forEach((charSpan, index) => {
+                const char = inputValue[index];
+                if (char == null) {
+                    charSpan.classList.remove('char-correct', 'char-wrong');
+                } else if (char === charSpan.innerText) {
+                    charSpan.classList.add('char-correct');
+                    charSpan.classList.remove('char-wrong');
+                } else {
+                    charSpan.classList.add('char-wrong');
+                    charSpan.classList.remove('char-correct');
+                    mistakes++;
+                }
+            });
+
+            updateCursor(inputValue.length);
+
+            // Statisztika
+            if (startTime) {
+                const timeElapsedMin = (new Date() - startTime) / 60000;
+                const wpm = Math.round((inputValue.length / 5) / timeElapsedMin) || 0;
+                const accuracy = Math.max(0, Math.round(((inputValue.length - mistakes) / inputValue.length) * 100)) || 100;
+                
+                document.getElementById('wpm').innerText = wpm;
+                document.getElementById('accuracy').innerText = accuracy;
+            }
+
+            // Befejezés
+            if (inputField.value === currentText) {
+                isFinished = true;
+                clearInterval(timerInterval);
+                const finalWpm = document.getElementById('wpm').innerText;
+                alert(`Gratulálok! Az eredményed: ${finalWpm} WPM`);
+            }
+        });
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const seconds = Math.floor((new Date() - startTime) / 1000);
+                document.getElementById('timer').innerText = seconds;
+            }, 1000);
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        // Billentyűparancsok (Esc az újraindításhoz)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") resetGame();
+            focusInput();
+        });
+
+        // Játék indítása
+        initGame();
+    </script>
+</body>
+</html>
