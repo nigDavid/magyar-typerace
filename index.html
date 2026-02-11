@@ -1,155 +1,4 @@
-<!DOCTYPE html>
-<html lang="hu">
-<head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7487315893315154"
-     crossorigin="anonymous"></script>
-    
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>magyarTypeRacer - online gépírás gyakorlás és sebességmérés</title>
-    <meta name="description" content="Gyakorold a tízujjas vakírást ingyen! Magyar nyelvű gépírás gyakorló és TypeRacer verseny. Mérd le a WPM sebességedet!">
-    
-    <style>
-        :root {
-            --bg: #181825;
-            --container-bg: #1e1e2e;
-            --text: #cdd6f4;
-            --accent: #89b4fa;
-            --correct: #a6e3a1;
-            --wrong: #f38ba8;
-            --subtext: #7f849c;
-        }
-
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            width: 95%;
-            text-align: center;
-            margin-top: 50px;
-        }
-
-        h1 { color: var(--accent); margin-bottom: 5px; font-size: 2.5rem; letter-spacing: 2px; }
-        .subtitle { color: var(--subtext); margin-bottom: 30px; font-size: 1.1rem; }
-
-        #text-container {
-            background: var(--container-bg);
-            padding: 30px;
-            border-radius: 15px;
-            font-size: 1.6rem;
-            line-height: 1.6;
-            margin-bottom: 25px;
-            text-align: left;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            word-wrap: break-word;
-            min-height: 120px;
-            user-select: none;
-            position: relative;
-        }
-
-        .char { border-bottom: 2px solid transparent; color: var(--subtext); transition: 0.1s; }
-        .char-correct { color: var(--correct); }
-        .char-wrong { color: var(--wrong); background: rgba(243, 139, 168, 0.2); border-radius: 3px; }
-        .char-current { border-bottom-color: var(--accent); color: var(--text); background: rgba(137, 180, 250, 0.1); }
-
-        #input-field { position: absolute; opacity: 0; pointer-events: none; }
-
-        .stats { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
-        .stat-box { background: var(--container-bg); padding: 15px 25px; border-radius: 12px; border: 1px solid #313244; min-width: 120px; }
-        .stat-label { font-size: 0.8rem; color: var(--subtext); text-transform: uppercase; }
-        .stat-value { font-size: 1.8rem; font-weight: bold; color: var(--accent); }
-
-        .controls { margin-top: 30px; }
-        button {
-            padding: 12px 35px; background: var(--accent); border: none; border-radius: 8px;
-            color: var(--bg); font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s;
-        }
-        button:hover { transform: scale(1.05); filter: brightness(1.1); }
-
-        /* SEO és Info szekció */
-        .info-section {
-            margin-top: 60px;
-            text-align: left;
-            background: rgba(49, 50, 68, 0.5);
-            padding: 30px;
-            border-radius: 15px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: var(--subtext);
-        }
-        .info-section h2 { color: var(--accent); font-size: 1.4rem; }
-
-        /* Számlálók */
-        .visitor-counters {
-            margin-top: 40px;
-            padding: 20px;
-            border-top: 1px solid #313244;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        #daily-session-count { color: var(--correct); font-weight: bold; }
-
-        /* Süti sáv */
-        #cookie-banner {
-            position: fixed;
-            bottom: 0; width: 100%; background: #11111b; color: var(--subtext);
-            padding: 15px; display: flex; justify-content: center; align-items: center;
-            gap: 20px; font-size: 0.9rem; border-top: 1px solid var(--accent); z-index: 1000;
-        }
-    </style>
-</head>
-<body onclick="focusInput()">
-
-    <div class="container">
-        <h1>Magyar TypeRacer</h1>
-        <p class="subtitle">Ingyenes magyar gépírás gyakorló program</p>
-        
-        <div id="text-container"></div>
-        <input type="text" id="input-field" autocomplete="off">
-
-        <div class="stats">
-            <div class="stat-box"><div class="stat-label">WPM (Sebesség)</div><div id="wpm" class="stat-value">0</div></div>
-            <div class="stat-box"><div class="stat-label">Pontosság</div><div id="accuracy" class="stat-value">100</div>%</div>
-            <div class="stat-box"><div class="stat-label">Idő</div><div id="timer" class="stat-value">0</div>s</div>
-        </div>
-
-        <div class="controls">
-            <button onclick="resetGame()">Új szöveg generálása (Esc)</button>
-        </div>
-
-        <div class="info-section">
-            <h2>Hogyan működik a magyar gépírás gyakorlás?</h2>
-            <p>A <strong>Magyar TypeRacer</strong> segít fejleszteni a tízujjas vakírás készségedet. A rendszer véletlenszerűen generál magyar szavakat, így minden kör új kihívást jelent. A WPM (Words Per Minute) mutatja meg, hány szót tudsz leütni egy perc alatt, figyelembe véve a hibákat is.</p>
-            <p>Tipp: Ne nézz a billentyűzetre gépelés közben, és próbálj a ritmusra figyelni a sebesség helyett!</p>
-        </div>
-
-        <div class="visitor-counters">
-            <div>Mai gépeléseid száma: <span id="daily-session-count">0</span></div>
-            <div style="opacity: 0.5;">Összes látogató (Globális):</div>
-            <img src="https://profile-counter.glitch.me/TE_NEVED/count.svg" alt="Visitor Counter">
-        </div>
-    </div>
-
-    <div id="cookie-banner">
-        Az oldal sütiket és AdSense hirdetéseket használ.
-        <button onclick="acceptCookies()">Elfogadom</button>
-    </div>
-
-    <script>
+<script>
         const szotar = ["alma", "erdő", "asztal", "tanulás", "magyar", "ország", "számítógép", "internet", "munka", "iskola", "folyó", "város", "autó", "macska", "kutya", "szeretet", "felhő", "ablak", "ajtó", "könyv", "újság", "telefon", "tavasz", "nyár", "ősz", "tél", "reggel", "este", "holnap", "tegnap", "beszéd", "játék", "pénz", "piac", "vidám", "gyors", "lassú", "ember", "gyerek", "család", "világ", "élet", "híd", "kapu", "virág", "madár", "repülő", "vonat", "kávé", "ebéd", "vacsora", "szék", "lámpa", "kép", "fal", "tető", "utca", "tér", "szín", "kék", "zöld", "piros", "sárga", "fehér", "fekete", "szürke", "barna", "erős", "gyenge", "meleg", "hideg", "eső", "geci", "kuki", "móni", "xd", "cigány", "holló", "Rikárdó", "kislány", "csinálás", "sexy", "punci", "hülye", "szeretlek", "gazdag", "adócsaló", "NAV", "67", "niga", "lop", "Spar", "Aldi", ];
 
         let currentText = "";
@@ -157,15 +6,16 @@
         let timerInterval = null;
         let isFinished = false;
 
-        // Napi számláló logika
+        const textContainer = document.getElementById('text-container');
+        const inputField = document.getElementById('input-field');
+        const wpmDisplay = document.getElementById('wpm');
+        const accuracyDisplay = document.getElementById('accuracy');
+        const timerDisplay = document.getElementById('timer');
+
         function updateDailyCounter() {
             const today = new Date().toDateString();
             let data = JSON.parse(localStorage.getItem('typingCounter')) || { date: today, count: 0 };
-            
-            if (data.date !== today) {
-                data = { date: today, count: 0 };
-            }
-            
+            if (data.date !== today) data = { date: today, count: 0 };
             document.getElementById('daily-session-count').innerText = data.count;
             return data;
         }
@@ -177,4 +27,88 @@
             document.getElementById('daily-session-count').innerText = data.count;
         }
 
-        function generateRandomText()
+        function generateRandomText() {
+            let words = [];
+            for(let i = 0; i < 15; i++) {
+                words.push(szotar[Math.floor(Math.random() * szotar.length)]);
+            }
+            currentText = words.join(" ");
+            textContainer.innerHTML = "";
+            currentText.split("").forEach(char => {
+                const span = document.createElement('span');
+                span.innerText = char;
+                span.classList.add('char');
+                textContainer.appendChild(span);
+            });
+        }
+
+        function focusInput() { inputField.focus(); }
+
+        function resetGame() {
+            clearInterval(timerInterval);
+            startTime = null;
+            isFinished = false;
+            inputField.value = "";
+            wpmDisplay.innerText = "0";
+            accuracyDisplay.innerText = "100";
+            timerDisplay.innerText = "0";
+            generateRandomText();
+            updateCharStyles();
+            focusInput();
+        }
+
+        inputField.addEventListener('input', () => {
+            if (!startTime && inputField.value.length > 0) {
+                startTime = new Date();
+                timerInterval = setInterval(updateStats, 100);
+            }
+            updateCharStyles();
+            if (inputField.value.length >= currentText.length && !isFinished) {
+                isFinished = true;
+                clearInterval(timerInterval);
+                incrementDailyCounter();
+            }
+        });
+
+        function updateCharStyles() {
+            const spans = textContainer.querySelectorAll('.char');
+            const val = inputField.value.split("");
+            let mistakes = 0;
+
+            spans.forEach((span, i) => {
+                span.className = "char";
+                if (i < val.length) {
+                    if (val[i] === currentText[i]) {
+                        span.classList.add('char-correct');
+                    } else {
+                        span.classList.add('char-wrong');
+                        mistakes++;
+                    }
+                } else if (i === val.length) {
+                    span.classList.add('char-current');
+                }
+            });
+
+            if (val.length > 0) {
+                let acc = Math.floor(((val.length - mistakes) / val.length) * 100);
+                accuracyDisplay.innerText = acc < 0 ? 0 : acc;
+            }
+        }
+
+        function updateStats() {
+            const timeElapsed = (new Date() - startTime) / 1000;
+            timerDisplay.innerText = timeElapsed.toFixed(1);
+            const wordsTyped = inputField.value.length / 5;
+            const wpm = Math.round(wordsTyped / (timeElapsed / 60));
+            wpmDisplay.innerText = wpm > 0 ? wpm : 0;
+        }
+
+        function acceptCookies() { document.getElementById('cookie-banner').style.display = 'none'; }
+        
+        window.addEventListener('keydown', (e) => { if(e.key === "Escape") resetGame(); });
+
+        updateDailyCounter();
+        resetGame();
+    </script>
+</body>
+</html>
